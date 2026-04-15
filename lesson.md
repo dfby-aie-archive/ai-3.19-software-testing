@@ -1,99 +1,63 @@
-# Software Testing: Unit and Integration Testing
-
----
+# Lesson: Software Testing: Unit and Integration Testing
 
 ## Lesson Overview
 
-This lesson introduces students to the fundamentals of software testing in Java, focusing on unit testing and integration testing within a Spring Boot application. Learners will understand how automated testing improves code quality, prevents regressions, and supports clean, maintainable development. Through hands-on examples, students will practice writing unit tests using JUnit and Mockito and perform integration testing using Spring Boot’s MockMvc framework.
-
----
+This lesson introduces students to the fundamentals of software testing in Java, focusing on unit testing and integration testing within a Spring Boot application. Learners will understand how automated testing improves code quality, prevents regressions, and supports clean, maintainable development. Through hands-on examples, students will practice writing unit tests using JUnit and Mockito and perform integration testing using Spring Boot's MockMvc framework.
 
 ## Lesson Objectives
 
 By the end of this lesson, learners will be able to:
 
-- Explain the purpose and benefits of software testing in modern development workflows.  
-- Write effective unit tests using JUnit and Mockito to validate business logic.  
-- Mock dependencies to test service-layer components in isolation.  
-- Perform integration testing of REST APIs using Spring Boot and MockMvc.  
-- Evaluate test results and understand how automated tests support refactoring and continuous development.
+1. **Explain** the purpose of software testing and the TDD cycle
+2. **Write** unit tests using JUnit with setup, execution, and assertion phases
+3. **Mock** dependencies using Mockito to test the service layer in isolation
+4. **Perform** integration testing of REST endpoints using Spring Boot and MockMvc
+
+---
 
 ## Part 1: Introduction to Software Testing
 
-Software testing is the process of evaluating a software application to ensure that it behaves correctly, meets business requirements, and remains reliable under different conditions. Testing helps identify defects early, improves code quality, and provides confidence that changes or new features will not break existing functionality. In modern software development, testing is essential because applications often involve multiple layers—controllers, services, repositories, databases, and external integrations—where issues can arise at any point.
+Software testing is the process of evaluating a software application to ensure that it behaves correctly, meets business requirements, and remains reliable under different conditions. Testing helps identify defects early, improves code quality, and provides confidence that changes or new features will not break existing functionality.
 
 At a fundamental level, software testing answers two key questions:
 
 1. Does the software do what it is supposed to do?
 2. Does it continue to work correctly when the code changes?
 
-Thorough testing contributes to better maintainability, safer refactoring, and more stable releases. Automated tests, in particular, allow developers to verify functionality quickly and consistently during development, reducing the need for repetitive manual testing.
-
----
+Automated tests allow developers to verify functionality quickly and consistently during development, reducing the need for repetitive manual testing.
 
 ### Why Do We Test Software?
 
-- Ensure functional correctness — features work as intended  
-- Prevent regressions when modifying or adding code  
-- Improve code structure and maintainability  
-- Gain confidence when refactoring complex logic  
-- Reduce manual QA effort through automation  
-- Build reliable, production-ready applications  
-
----
-
-### Types of Software Testing (Overview)
-
-Software testing spans multiple levels, each focusing on a different scope of the system. Below is a high-level overview of common testing types:
-
-<img src="./assets/images/software-testing.jpg" width=500 style="background-color: #fff; padding: 20px;border-radius: 5px;border: 1px solid #eee;">
-
-#### 1. Unit Testing
-Tests individual units of code (typically methods or classes) in **complete isolation**.  
-- Very fast  
-- Automated  
-- Uses mocks to simulate dependencies  
-- Helps validate business logic early  
-
-#### 2. Integration Testing
-Tests how multiple components work together—for example, a controller calling a service which uses a repository.  
-- Uses real configurations  
-- Slower than unit tests  
-- Identifies issues in wiring, data flow, and API behavior  
-
-#### 3. Functional / End-to-End (E2E) Testing
-Tests a complete user workflow from start to end.  
-Useful for validating behavior from a user's perspective.
-
-#### 4. System Testing
-Tests the application as a whole, ensuring all modules function correctly together.
-
-#### 5. Acceptance Testing (UAT)
-Conducted by QA teams or business stakeholders to confirm the system meets business requirements.
-
-#### 6. Regression Testing
-Ensures that previously working functionality still works after introducing changes or adding new features.
-
-#### 7. Performance Testing
-Evaluates speed, responsiveness, and scalability under expected and peak loads.
-
-#### 8. Security Testing
-Ensures the application is protected against vulnerabilities such as SQL injection, XSS, authentication flaws, etc.
-
----
-
-## Focus of This Lesson
-
-This lesson will focus specifically on:
-
-- Unit Testing — writing tests for individual classes or methods  
-- Integration Testing — testing REST APIs and component interactions using Spring Boot  
-
-These two testing types form the foundation of a reliable and maintainable Java/Spring Boot backend.
+- Ensure functional correctness — features work as intended
+- Prevent regressions when modifying or adding code
+- Improve code structure and maintainability
+- Gain confidence when refactoring complex logic
+- Reduce manual QA effort through automation
+- Build reliable, production-ready applications
 
 ### Types of Software Testing
 
-There are many types of software testing and in this lesson, we will be looking at Unit Testing and Integration Testing.
+Software testing spans multiple levels, each focusing on a different scope of the system.
+
+<img src="./assets/images/software-testing.jpg" width=500 style="background-color: #fff; padding: 20px;border-radius: 5px;border: 1px solid #eee;">
+
+**Unit Testing** — tests individual units of code (typically methods or classes) in complete isolation. Very fast, automated, uses mocks to simulate dependencies.
+
+**Integration Testing** — tests how multiple components work together. Uses real configurations, slower than unit tests, identifies issues in wiring, data flow, and API behaviour.
+
+**Functional / End-to-End Testing** — tests a complete user workflow from start to end, validating behaviour from the user's perspective.
+
+**System Testing** — tests the application as a whole, ensuring all modules function correctly together.
+
+**Acceptance Testing (UAT)** — conducted by QA teams or business stakeholders to confirm the system meets business requirements.
+
+**Regression Testing** — ensures that previously working functionality still works after introducing changes or new features.
+
+**Performance Testing** — evaluates speed, responsiveness, and scalability under expected and peak loads.
+
+**Security Testing** — ensures the application is protected against vulnerabilities such as SQL injection, XSS, and authentication flaws.
+
+This lesson focuses on **Unit Testing** and **Integration Testing** — the two types that form the foundation of a reliable and maintainable Java/Spring Boot backend.
 
 You can read more here: https://www.guru99.com/software-testing-introduction-importance.html
 
@@ -101,19 +65,17 @@ You can read more here: https://www.guru99.com/software-testing-introduction-imp
 
 ## Part 2: Introduction to Test Driven Development (TDD)
 
-In our usual software development process, developers write code first and then test it. In the TDD approach, developers write tests first and then write code to pass the tests. The tests are written in small increments and the code is refactored after each test.
-
-This approach makes developers think about the requirements and identify any potential issues before writing code.
+In the usual software development process, developers write code first and then test it. In the **TDD** approach, developers write tests first and then write code to pass those tests.
 
 <img src="https://www.nimblework.com/wp-content/uploads/2022/12/tdd_flow1.gif" width=350 style="background-color: #fff; padding: 20px;border-radius: 5px;border: 1px solid #eee;">
 
-The TDD cycle follows 3 phases - Red, Green and Refactor.
+The TDD cycle follows 3 phases:
 
-- Red: Write a test that fails.
-- Green: Write the simplest code to pass the test.
-- Refactor: Refactor the code to make it better.
+- **Red** — Write a test that fails
+- **Green** — Write the simplest code to pass the test
+- **Refactor** — Refactor the code to make it better
 
-For example, in our `simple-crm` project, we might want to unit test that a customer can be created successfully. We would then proceed to write a test for this.
+For example, in our `simple-crm` project, we might want to unit test that a customer can be created successfully. Following TDD, we write the test first:
 
 ```java
 @ExtendWith(MockitoExtension.class)
@@ -139,11 +101,10 @@ public class CustomerServiceImplTest {
 
     verify(customerRepository, times(1)).save(customer);
   }
-
 }
 ```
 
-Following that, we can then write the code to pass this test.
+Then we write the code to pass this test:
 
 ```java
 @Service
@@ -153,57 +114,37 @@ public class CustomerServiceImpl implements CustomerService {
   public Customer createCustomer(Customer customer) {
     return customerRepository.save(customer);
   }
-
 }
 ```
 
-With the TDD approach, we would write the tests first and then write the code to pass these tests.
-
-Using TDD can result in better code quality and fewer bugs because issues are caught earlier in the development cycle. There is also increased confidence when refactoring code because the tests would catch any issues that may arise. In addition, writing tests first forces developers to think through about the requirements and design of the code before writing it.
-
-However, this approach may not be suitable for all projects because:
-
-- Upfront investment in writing tests: writing tests before code is time consuming, especially for complex requirements and may not be suitable for projects with tight deadlines.
-- Learning Curve: developers may be new to this approach and it can take some time to be proficient
-- Over-testing: developers may write too many tests and this can be a waste of time and effort
-- Maintenance Cost: tests need to be maintained and updated when the code changes, which can be expensive for projects with rapidly changing requirements
-
-Some teams may adopt a hybrid approach where they write tests first for features that have complex business logic and critical components and write tests after for less critical features.
+Using TDD can result in better code quality and fewer bugs because issues are caught earlier. It also increases confidence when refactoring because tests catch any regressions. However, it may not be suitable for all projects due to upfront time investment, learning curve, and maintenance cost of keeping tests up to date. Some teams adopt a hybrid approach — TDD for critical business logic and post-implementation tests for less critical features.
 
 ---
 
 ## Part 3: Unit Testing
 
-Currently, we test our application by running the application and manually testing the endpoints using Postman. Just calling an API endpoint does not guarantee that the code is working as expected. Because we may have complex logic in our service layer, we need to test the code in our service layer in isolation as well.
-
-For bigger or more complex projects, this can be a problem because every time we make a change to the code, it requires a real person to look at the output and verify that it is correct.
-
-Hence, we should automate our testing process by writing unit tests.
+Currently, we test our application by running it and manually calling endpoints via Postman. This is time-consuming and unreliable for complex logic. We should automate our testing by writing unit tests.
 
 ### What is Unit Testing?
 
-Unit testing is a type of software testing where individual units or components of a software are tested. The purpose is to validate that each unit of the software performs as designed. Such tests are also independent of other units and can be run in isolation so that we can test each unit separately.
+Unit testing tests individual units or components of a software application in isolation. These tests are independent of other units, automated, and can be reproduced quickly — which means they can be run frequently during development without slowing down the team.
 
-More importantly, these tests can be performed automatically and are reproduced easily. This is important because we want to be able to run these tests frequently and quickly.
-
-With these tests in place, when we add new features or refactor our code, we can run these tests to ensure that our code is still working as expected. In addition, if team members leave the project, we can be sure that the new team members can run these tests to verify that the code is working as expected.
+When we add new features or refactor code, running the unit tests immediately tells us if anything broke.
 
 ### Unit Testing Frameworks
 
-We will be using these frameworks for our unit tests:
+We will use:
 
-- [JUnit](https://junit.org/junit5/): a unit testing framework that allows us to create and run unit tests
-- [Mockito](https://site.mockito.org/): a mocking framework that allows us to create mock objects for our unit tests
+- [JUnit](https://junit.org/junit5/) — a unit testing framework for creating and running tests
+- [Mockito](https://site.mockito.org/) — a mocking framework for simulating dependencies
 
-In Spring Boot, these frameworks are included in the `spring-boot-starter-test` dependency.
-
-We use mock objects to simulate the behavior of real objects. This is useful when we want to test a class that depends on another class. Instead of creating an instance of the other class, we can create a mock object that simulates the behavior of the other class. This lets us test our class in isolation.
+Both are included in the `spring-boot-starter-test` dependency that Spring Boot adds by default.
 
 ### Unit Test Example with `@Test`
 
-Let's see a simple example of unit testing. We will use our `simple-crm` code base for this example so that we do not have to create another project.
+Let's see a simple example using our `simple-crm` codebase.
 
-Create a `DemoService.java`.
+Create a `DemoService.java`:
 
 ```java
 public class DemoService {
@@ -218,18 +159,7 @@ public class DemoService {
 }
 ```
 
-We can then create a corresponding `DemoServiceTest.java` class in the `src/test/java` folder.
-
-There are 3 steps in writing a unit test:
-
-1. Setup - Create an instance of the class to be tested
-2. Execute - Call the method to be tested
-3. Assert - Check the result
-
-This pattern is also known as the **Arrange-Act-Assert** pattern, or **Given-When-Then** pattern.
-https://automationpanda.com/2020/07/07/arrange-act-assert-a-pattern-for-writing-good-tests/
-
-We create a method annotated with `@Test` for each test case.
+Create a corresponding `DemoServiceTest.java` in `src/test/java`. There are 3 steps in writing a unit test — this is known as the **Arrange-Act-Assert** pattern (also called Given-When-Then):
 
 ```java
 public class DemoServiceTest {
@@ -237,110 +167,88 @@ public class DemoServiceTest {
   @Test
   public void testAdd() {
     // 1. SETUP
-    // Create the instance of the class that we want to test
     DemoService demoService = new DemoService();
-
-    // Define the expected result
     int expectedResult = 8;
 
     // 2. EXECUTE
-    // Call the method that we want to test
     int actualResult = demoService.add(3, 5);
 
     // 3. ASSERT
-    // Compare the actual result with the expected result
     assertEquals(expectedResult, actualResult, "3 + 5 should be 8");
   }
 
   @Test
   public void testSubtract() {
     // 1. SETUP
-    // Create the instance of the class that we want to test
     DemoService demoService = new DemoService();
-
-    // Define the expected result
     int expectedResult = 2;
 
     // 2. EXECUTE
-    // Call the method that we want to test
     int actualResult = demoService.subtract(5, 3);
 
     // 3. ASSERT
-    // Compare the actual result with the expected result
     assertEquals(expectedResult, actualResult, "5 - 3 should be 2");
   }
-
 }
 ```
 
-We use assertions to check if the actual result is the same as the expected result. If the actual result is not the same as the expected result, the test will fail.
+Run the test by clicking the green arrow next to the test method, or run `mvn test` in the terminal.
 
-To run the test, we can click on the green arrow next to the test method. Alternatively, we can type `mvn test` on the terminal.
-
-Let's say we made a mistake in our code, like this:
+Now try introducing a bug:
 
 ```java
 public int add(int a, int b) {
-    return a * b;
+    return a * b; // wrong operation
 }
 ```
 
-Try to run the test again. You should see that the test fails.
+Run the test again — it should fail, demonstrating that the test caught the regression.
 
-Once you get more familiar with the process, the earlier code could be simplified to:
+Once you are comfortable, tests can be written more concisely:
 
 ```java
-public class DemoServiceTest {
-
-    @Test
-    public void testAdd() {
-      DemoService demoService = new DemoService();
-      assertEquals(8, demoService.add(3, 5), "3 + 5 should be 8");
-    }
-
+@Test
+public void testAdd() {
+  DemoService demoService = new DemoService();
+  assertEquals(8, demoService.add(3, 5), "3 + 5 should be 8");
 }
 ```
 
-We will be using the longer version for now so that it is easier to understand.
-
-Notice that we are not using dependency injection here. This is because we are testing without spinning up the Spring context. Hence, there are no beans available to be injected. One advantage of doing so is that the test will run faster since it does not involve Spring initialization and container startup.
+Notice we are not using dependency injection here. We are testing without spinning up the Spring context, which means no beans are available — but this also means tests run much faster.
 
 ### Assertions
 
-JUnit has many assertion methods that we can use. Some of the commonly used ones are:
+| Method | Description |
+|---|---|
+| `assertEquals()` | Checks that two primitives/objects are equal |
+| `assertNotEquals()` | Checks that two primitives/objects are not equal |
+| `assertTrue()` | Checks that a condition is true |
+| `assertFalse()` | Checks that a condition is false |
+| `assertNull()` | Checks that an object is null |
+| `assertNotNull()` | Checks that an object is not null |
+| `assertArrayEquals()` | Checks that two arrays are equal |
+| `assertThrows()` | Checks that an exception is thrown |
 
-| Method                | Description                                          |
-| --------------------- | ---------------------------------------------------- |
-| `assertEquals()`      | Checks that two primitives/objects are equal         |
-| `assertNotEquals()`   | Checks that two primitives/objects are not equal     |
-| `assertTrue()`        | Checks that a condition is true                      |
-| `assertFalse()`       | Checks that a condition is false                     |
-| `assertNull()`        | Checks that an object is null                        |
-| `assertNotNull()`     | Checks that an object is not null                    |
-| `assertArrayEquals()` | Checks that two arrays are equal                     |
-| `assertThrows()`      | Checks that an exception is thrown by the executable |
-
-You can read more about JUnit assertions [here](https://junit.org/junit5/docs/current/user-guide/#writing-tests-assertions).
+Read more: https://junit.org/junit5/docs/current/user-guide/#writing-tests-assertions
 
 ### Lifecycle Methods
 
-JUnit also has lifecycle methods that we can use to perform setup and teardown operations. These methods are annotated with `@BeforeAll`, `@BeforeEach`, `@AfterEach` and `@AfterAll`.
+JUnit lifecycle methods allow us to perform setup and teardown operations:
 
-| Method        | Description                                                |
-| ------------- | ---------------------------------------------------------- |
-| `@BeforeAll`  | Executed once before all test methods in the current class |
-| `@BeforeEach` | Executed before each test method in the current class      |
-| `@AfterEach`  | Executed after each test method in the current class       |
-| `@AfterAll`   | Executed once after all test methods in the current class  |
+| Annotation | Description |
+|---|---|
+| `@BeforeAll` | Executed once before all test methods in the class |
+| `@BeforeEach` | Executed before each test method |
+| `@AfterEach` | Executed after each test method |
+| `@AfterAll` | Executed once after all test methods in the class |
 
-We could move the instantiation of the `DemoService` into the `@BeforeEach` method so that we do not have to repeat the code in every test method.
+We can move the instantiation of `DemoService` into `@BeforeEach` to avoid repeating it in every test:
 
 ```java
 public class DemoServiceTest {
 
   DemoService demoService;
 
-  // This method is executed before each test method
   @BeforeEach
   public void init() {
     demoService = new DemoService();
@@ -350,11 +258,11 @@ public class DemoServiceTest {
 
 ### Generating HTML Report
 
-You can run `mvn surefire-report:report` and a HTML report will be generated in `target/site/surefire-report.html`.
+Run `mvn surefire-report:report` and a HTML report will be generated at `target/site/surefire-report.html`.
 
-### 👨‍💻 Activity
+### 👨‍💻 Activity **(10 minutes)**
 
-Add 3 more methods to the `DemoService` class and write the corresponding unit tests for them.
+Add 3 more methods to `DemoService` and write unit tests for each:
 
 ```java
 public int multiply(int a, int b) {
@@ -372,136 +280,95 @@ public boolean isEven(int a) {
 
 ---
 
-## Part 4: Service Layer (Unit Testing)
+## Part 4: Service Layer Unit Testing with Mockito
 
-Recall that the service layer is where we put our business logic. We will be writing unit tests for the service layer.
+Recall that the service layer contains our business logic and depends on the repository layer. When unit testing the service layer, we do not want to interact with the real database — we only want to test the logic itself. We achieve this by **mocking** the repository.
 
-As the service layer is dependent on the data layer, we will need to mock the data layer using Mockito because we are only interested in testing the service layer i.e. we don't actually want to read and write to the database.
+### Prepare the Customer Class
 
-Create a `CustomerServiceImplTest.java` in the corresponding test folder. Note that it is a conventional practice to place test files in the corresponding test folder.
-
-e.g.
-
-File to test:
-`CustomerServiceImpl.java` in `src/main/java/sg/ntu/edu/simplecrm/service/`
-
-Test file:
-`CustomerServiceImplTest.java` in `src/test/java/sg/ntu/edu/simplecrm/service/`
-
-### Mocking
-
-Mocking is a technique used in unit testing to isolate a class under test from its dependencies.
-
-In our case of testing the service layer, we will mock the repository layer. This means instead of calling the repository layer, we will create a mock object that simulates the behavior of the repository layer.
+Before writing service tests, add the following Lombok annotations to the `Customer` class if not already present:
 
 ```java
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-@ExtendWith(MockitoExtension.class)
-public class CustomerServiceImplTest {
-
-  // We need to mock the CustomerRepository
-  // Because we don't want to test the repository layer
-  @Mock
-  private CustomerRepository customerRepository;
-
-  @InjectMocks // Inject the mocks as dependencies into CustomerServiceImpl
-  CustomerServiceImpl customerService; // Instantiated and injected by Mockito
-
+@Builder          // enables the builder pattern for creating Customer objects in tests
+@EqualsAndHashCode // required for assertEquals() to compare Customer objects by value
+public class Customer {
   // ...
 }
 ```
 
-The `@ExtendWith(MockitoExtension.class)` annotation is used to enable the Mockito extension for JUnit 5. It will automatically initialize the mocks and inject them into the test class.
+### Mocking with Mockito
 
-The `@Mock` annotation is used to tell Mockito to create a mock object for the `CustomerRepository` class.
+Create `CustomerServiceImplTest.java` in the corresponding test folder.
 
-The `@InjectMocks` annotation is used to tell Mockito to inject the mock object into the `CustomerServiceImpl` class.
-
-With this, we do not have to spin up the entire Spring application context and we can test the service layer in isolation.
-
-### Test Create Customer
-
-Now we can add a test method to test the `createCustomer()` method.
+Convention: test files mirror the source folder structure.
+- Source: `src/main/java/sg/edu/ntu/simplecrm/service/CustomerServiceImpl.java`
+- Test: `src/test/java/sg/edu/ntu/simplecrm/service/CustomerServiceImplTest.java`
 
 ```java
 @ExtendWith(MockitoExtension.class)
 public class CustomerServiceImplTest {
 
-  // Mock the customer repository
   @Mock
   private CustomerRepository customerRepository;
 
-  // Inject the mocked customer repository into the customer service
   @InjectMocks
   private CustomerServiceImpl customerService;
-
-  @Test
-  public void testCreateCustomer() {
-
-    // 1. SETUP
-    // Create a new customer
-    Customer customer = Customer.builder().firstName("Clint").lastName("Barton").email("clint@avengers.com")
-        .contactNo("12345678").jobTitle("Special Agent").yearOfBirth(1975).build();
-
-    // Mock the save method of the customer repository
-    when((customerRepository.save(customer))).thenReturn(customer);
-
-    // 2. EXECUTE
-    // Call the method that we want to test
-    Customer savedCustomer = customerService.createCustomer(customer);
-
-    // 3. ASSERT
-    // Compare the actual result with the expected result
-    assertEquals(customer, savedCustomer, "The saved customer should be the same as the new customer");
-
-    // Also verify that the save method of the customer repository is called once
-    verify(customerRepository, times(1)).save(customer);
-  }
-
 }
 ```
 
-We start with our setup.
+- `@ExtendWith(MockitoExtension.class)` — enables Mockito for JUnit 5
+- `@Mock` — tells Mockito to create a mock `CustomerRepository`
+- `@InjectMocks` — tells Mockito to inject the mock into `CustomerServiceImpl`
 
-- We create a new customer using the builder pattern. To allow that, we add `@Builder` on our `Customer` class. Note that you can also create it using the usual constructor method.
-- Then we mock the `save()` method of the `CustomerRepository` to return the customer that is passed in. This is because we want to test the `createCustomer()` method and not the `save()` method of the `CustomerRepository`.
-- We can use the `when()` method to tell Mockito what to do when the `save()` method of the `CustomerRepository` is called. In this case, we want to return the customer that is passed in.
+This means we can test the service layer without spinning up the Spring context or touching the database.
 
-Next we execute, which is to call the method that we want to test
+### Test Create Customer
 
-- We call the `createCustomer()` method of the `CustomerService` and pass in the customer that we created earlier.
+```java
+@Test
+public void testCreateCustomer() {
 
-Finally, we assert.
+  // 1. SETUP
+  Customer customer = Customer.builder()
+      .firstName("Clint").lastName("Barton")
+      .email("clint@avengers.com").contactNo("12345678")
+      .jobTitle("Special Agent").yearOfBirth(1975)
+      .build();
 
-- We assert that the customer that is returned by the `createCustomer()` method is the same as the customer that we created earlier.
-- Note that we have to override the `equals()` method in the `Customer` class for this to work. You can use VSCode to do this. Right click on the `Customer` class and select `Generate hashCode() and equals()`. Select all the fields and click `Generate`. Alternatively, we can use the `@EqualsAndHashCode` annotation from Lombok.
-- We also verify that the `save()` method of the `CustomerRepository` is called once. This is to ensure that the `createCustomer()` method is calling the `save()` method of the `CustomerRepository`.
+  when(customerRepository.save(customer)).thenReturn(customer);
+
+  // 2. EXECUTE
+  Customer savedCustomer = customerService.createCustomer(customer);
+
+  // 3. ASSERT
+  assertEquals(customer, savedCustomer, "The saved customer should be the same as the new customer");
+  verify(customerRepository, times(1)).save(customer);
+}
+```
+
+- `when(...).thenReturn(...)` — tells Mockito what to return when a specific method is called
+- `verify(...)` — confirms the mocked method was called the expected number of times
 
 ### Test Get Customer
 
 ```java
 @Test
 public void testGetCustomer() {
-    // 1. SETUP
-    // Create a new customer
-    Customer customer = Customer.builder().firstName("Clint").lastName("Barton").email("clint@avengers.com")
-        .contactNo("12345678").jobTitle("Special Agent").yearOfBirth(1975).build();
+  // 1. SETUP
+  Customer customer = Customer.builder()
+      .firstName("Clint").lastName("Barton")
+      .email("clint@avengers.com").contactNo("12345678")
+      .jobTitle("Special Agent").yearOfBirth(1975)
+      .build();
 
-    Long customerId = 1L;
+  Long customerId = 1L;
+  when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
 
-    when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+  // 2. EXECUTE
+  Customer retrievedCustomer = customerService.getCustomer(customerId);
 
-    // 2. EXECUTE
-    Customer retrievedCustomer = customerService.getCustomer(customerId);
-
-    // 3. ASSERT
-    assertEquals(customer, retrievedCustomer);
-
+  // 3. ASSERT
+  assertEquals(customer, retrievedCustomer);
 }
 ```
 
@@ -510,128 +377,112 @@ public void testGetCustomer() {
 ```java
 @Test
 void testGetCustomerNotFound() {
-    Long customerId = 1L;
-    when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
+  Long customerId = 1L;
+  when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
-    assertThrows(CustomerNotFoundException.class, () -> customerService.getCustomer(customerId));
+  assertThrows(CustomerNotFoundException.class, () -> customerService.getCustomer(customerId));
 }
 ```
 
 ---
 
-## Part 5: REST API Test (Integration Testing)
+## Part 5: Integration Testing with MockMvc
 
-In Unit Testing, we test a small unit of the application. In Integration Testing, we want to test the whole request and response cycle of our application. It will involve all the layers of our application.
+Unit tests validate individual components in isolation. Integration tests validate how components work together — the full request/response cycle from controller through service to repository.
 
-How do we test a REST Controller? Spring provides a library called `MockMvc` that allows us to mock HTTP requests and responses. We can use MockMvc to test our REST Controller.
+Spring provides `MockMvc` to simulate HTTP requests without starting a real server.
 
-Let's create a `CustomerControllerTest.java` in the corresponding test folder.
-
-We need to annotate it first with `@SpringBootTest`, which will load the Spring application context. This will allow us to test the controller as if it is running in a real Spring application because it will load all the beans and configurations.
-
-We also need to annotate it with `@AutoConfigureMockMvc`, which will autowire the `MockMvc` object. This object is used to perform the HTTP requests.
-
-### Test Get Customer
+Create `CustomerControllerTest.java` in the corresponding test folder.
 
 ```java
-// This may not be auto-imported
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc // This is needed to autowire the MockMvc object
+@AutoConfigureMockMvc
 public class CustomerControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
 
-  @DisplayName("Get customer by Id")
-  @Test
-  public void getCustomerByIdTest() throws Exception {
-    // Step 1: Build a GET request to /customers/1
-    RequestBuilder request = MockMvcRequestBuilders.get("/customers/1");
-
-    // Step 2: Perform the request, get the response and assert
-    mockMvc.perform(request)
-        // Assert that the status code is 200
-        .andExpect(status().isOk())
-        // Assert that the content type is JSON
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        // Assert that the id returned is 1
-        .andExpect(jsonPath("$.id").value(1));
-  }
+  @Autowired
+  private ObjectMapper objectMapper;
 }
 ```
 
-### JsonPath
+- `@SpringBootTest` — loads the full Spring application context
+- `@AutoConfigureMockMvc` — auto-wires the `MockMvc` bean
+- `ObjectMapper` — used to convert Java objects to JSON (provided by Jackson)
 
-JsonPath is a library that allows us to query JSON documents. We can use it to query the JSON response returned by our REST Controller.
-
-For example, if we have a JSON response like this:
-
-```json
-{
-  "id": 1,
-  "firstName": "Clint",
-  "lastName": "Barton",
-  "email": "clint@avengers.com"
-}
-```
+### Test Get Customer
 
 ```java
-jsonPath("$.id") // returns 1.
-jsonPath("$.firstName") // returns Clint.
-jsonPath("$.lastName") // returns Barton.
-jsonPath("$.email") // returns "clint@avengers.com"
+@Test
+@DisplayName("Get customer by Id")
+public void getCustomerByIdTest() throws Exception {
+  // Step 1: Build a GET request to /customers/1
+  RequestBuilder request = MockMvcRequestBuilders.get("/customers/1");
+
+  // Step 2: Perform the request and assert
+  mockMvc.perform(request)
+      .andExpect(status().isOk())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.id").value(1));
+}
+```
+
+**JsonPath** allows us to query the JSON response:
+
+```java
+jsonPath("$.id")        // returns the id field
+jsonPath("$.firstName") // returns the firstName field
+jsonPath("$.lastName")  // returns the lastName field
 ```
 
 ### Test Get All Customers
 
+> ⚠️ Note: This test asserts that 4 customers are returned. This depends on the `DataLoader` preloading exactly 4 customers. If you change the DataLoader, update this value accordingly.
+
 ```java
 @Test
 public void getAllCustomersTest() throws Exception {
-    // Step 1: Build a GET request to /customers
-    RequestBuilder request = MockMvcRequestBuilders.get("/customers");
+  RequestBuilder request = MockMvcRequestBuilders.get("/customers");
 
-    // Step 2: Perform the request, get the response and assert
-    mockMvc.perform(request)
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.size()").value(4));
+  mockMvc.perform(request)
+      .andExpect(status().isOk())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.size()").value(4));
 }
 ```
 
 ### Test Valid Customer Creation
 
-To create a customer, we need to send a POST request to `/customers` with a JSON body. In order to do that, we need to convert our Java object to JSON. We can use the `ObjectMapper` class to do that. ObjectMapper is provided by the Jackson library.
-
-```java
-@Autowired
-private ObjectMapper objectMapper;
-```
+> ⚠️ Note: This test asserts the new customer gets `id` of `5`, assuming the DataLoader preloads 4 customers and IDs are auto-incremented. If the DataLoader changes, update this value.
 
 ```java
 @Test
 public void validCustomerCreationTest() throws Exception {
-	// Step 1: Create a Customer object
-	 Customer newCustomer = Customer.builder().firstName("Clint").lastName("Barton").email("clint@avengers.com")
-        .contactNo("12345678").jobTitle("Special Agent").yearOfBirth(1975).build();
+  // Step 1: Create a Customer object
+  Customer newCustomer = Customer.builder()
+      .firstName("Clint").lastName("Barton")
+      .email("clint@avengers.com").contactNo("12345678")
+      .jobTitle("Special Agent").yearOfBirth(1975)
+      .build();
 
-	// Step 2: Convert the Java object to JSON using ObjectMapper
-	String newCustomerAsJSON = objectMapper.writeValueAsString(newCustomer);
+  // Step 2: Convert to JSON
+  String newCustomerAsJSON = objectMapper.writeValueAsString(newCustomer);
 
-	// Step 3: Build the request
-	RequestBuilder request = MockMvcRequestBuilders.post("/customers")
-			.contentType(MediaType.APPLICATION_JSON)
-			.content(newCustomerAsJSON);
+  // Step 3: Build the request
+  RequestBuilder request = MockMvcRequestBuilders.post("/customers")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(newCustomerAsJSON);
 
-	// Step 4: Perform the request and get the response and assert
-	mockMvc.perform(request)
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.id").value(5))
-			.andExpect(jsonPath("$.firstName").value("Clint"))
-			.andExpect(jsonPath("$.lastName").value("Barton"));
-
+  // Step 4: Perform and assert
+  mockMvc.perform(request)
+      .andExpect(status().isCreated())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.id").value(5))
+      .andExpect(jsonPath("$.firstName").value("Clint"))
+      .andExpect(jsonPath("$.lastName").value("Barton"));
 }
 ```
 
@@ -640,21 +491,28 @@ public void validCustomerCreationTest() throws Exception {
 ```java
 @Test
 public void invalidCustomerCreationTest() throws Exception {
-    // Step 1: Create a Customer object with invalid fields
-    Customer invalidCustomer = new Customer(3L, "  ", "  ", "bruce@a.com", "12345678", "Manager", 1990, null);
+  // Step 1: Create a Customer object with invalid fields
+  Customer invalidCustomer = Customer.builder()
+      .firstName("  ")
+      .lastName("  ")
+      .email("not-a-valid-email")
+      .contactNo("12345678")
+      .jobTitle("Manager")
+      .yearOfBirth(1990)
+      .build();
 
-    // Step 2: Convert the Java object to JSON
-    String invalidCustomerAsJSON = objectMapper.writeValueAsString(invalidCustomer);
+  // Step 2: Convert to JSON
+  String invalidCustomerAsJSON = objectMapper.writeValueAsString(invalidCustomer);
 
-    // Step 3: Build the request
-    RequestBuilder request = MockMvcRequestBuilders.post("/customers")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(invalidCustomerAsJSON);
+  // Step 3: Build the request
+  RequestBuilder request = MockMvcRequestBuilders.post("/customers")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(invalidCustomerAsJSON);
 
-    // Step 4: Perform the request and get the response
-    mockMvc.perform(request)
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+  // Step 4: Perform and assert
+  mockMvc.perform(request)
+      .andExpect(status().isBadRequest())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 }
 ```
 
