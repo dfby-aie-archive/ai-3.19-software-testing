@@ -104,11 +104,17 @@ public class CustomerServiceImplTest {
 }
 ```
 
-Then we write the code to pass this test:
+Then we write the code to pass this test. Note that `customerRepository` must be declared and injected via constructor — this is the standard approach in Spring Boot:
 
 ```java
 @Service
 public class CustomerServiceImpl implements CustomerService {
+
+  private final CustomerRepository customerRepository;
+
+  public CustomerServiceImpl(CustomerRepository customerRepository) {
+    this.customerRepository = customerRepository;
+  }
 
   @Override
   public Customer createCustomer(Customer customer) {
@@ -116,6 +122,8 @@ public class CustomerServiceImpl implements CustomerService {
   }
 }
 ```
+
+> **Instructor note:** Constructor injection (instead of `@Autowired` on a field) is the current industry standard. It makes dependencies explicit, enables immutability with `final`, and — critically — makes unit testing straightforward because you can construct the class directly without a Spring context.
 
 Using TDD can result in better code quality and fewer bugs because issues are caught earlier. It also increases confidence when refactoring because tests catch any regressions. However, it may not be suitable for all projects due to upfront time investment, learning curve, and maintenance cost of keeping tests up to date. Some teams adopt a hybrid approach — TDD for critical business logic and post-implementation tests for less critical features.
 
@@ -215,6 +223,24 @@ public void testAdd() {
 ```
 
 Notice we are not using dependency injection here. We are testing without spinning up the Spring context, which means no beans are available — but this also means tests run much faster.
+
+### Test Naming Conventions
+
+Consistent test naming helps teams understand what failed and why without reading the test body. A widely adopted convention in production codebases is:
+
+```
+methodName_scenario_expectedBehaviour
+```
+
+For example:
+
+| Style | Example |
+|---|---|
+| Simple (common in tutorials) | `testCreateCustomer` |
+| Descriptive (production standard) | `createCustomer_validInput_returnsCreatedCustomer` |
+| BDD style | `givenValidCustomer_whenCreateCustomer_thenReturnSavedCustomer` |
+
+You will see both styles in practice. The descriptive style is preferred on team projects because the test name itself acts as documentation.
 
 ### Assertions
 
@@ -320,6 +346,8 @@ public class CustomerServiceImplTest {
 - `@Mock` — tells Mockito to create a mock `CustomerRepository`
 - `@InjectMocks` — tells Mockito to inject the mock into `CustomerServiceImpl`
 
+> **Instructor note — common mistake:** `@InjectMocks` must target the **concrete class** (`CustomerServiceImpl`), not the interface (`CustomerService`). Mockito creates an instance of the concrete class and injects the mocks — it cannot instantiate an interface. Students often write `CustomerService customerService` here and get a confusing error.
+
 This means we can test the service layer without spinning up the Spring context or touching the database.
 
 ### Test Create Customer
@@ -376,7 +404,7 @@ public void testGetCustomer() {
 
 ```java
 @Test
-void testGetCustomerNotFound() {
+public void testGetCustomerNotFound() {
   Long customerId = 1L;
   when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
@@ -392,6 +420,27 @@ Unit tests validate individual components in isolation. Integration tests valida
 
 Spring provides `MockMvc` to simulate HTTP requests without starting a real server.
 
+### `@SpringBootTest` vs `@WebMvcTest`
+
+Before writing integration tests, it's worth understanding the two main annotations:
+
+| Annotation | What it loads | Speed | Use when |
+|---|---|---|---|
+| `@SpringBootTest` | Full application context — all beans, datasource, security, AI config, etc. | Slower | Testing the full stack end-to-end |
+| `@WebMvcTest` | Web layer only — controllers, filters, `@ControllerAdvice`. No service/repo beans. | Faster | Testing controller logic in isolation with mocked services |
+
+In production teams, `@WebMvcTest` is preferred for controller-layer tests because it is faster and more focused. `@SpringBootTest` is used for true end-to-end or database integration tests.
+
+> **Instructor note:** A common production gotcha — `@SpringBootTest` loads **everything**, including Spring AI and OpenAI configuration. If your test environment (e.g. CI/CD pipeline) does not have the `OPENAI_API_KEY` set, the context will fail to load and **all integration tests will fail before a single test even runs**. The error looks like a configuration failure, not a test failure — which confuses developers. The fix is either to provide a dummy key via `@TestPropertySource` or to use `@WebMvcTest` which skips the AI beans entirely.
+
+For this lesson we use `@SpringBootTest` to test the full stack. Make sure your `OPENAI_API_KEY` environment variable is set, or add this to your test class:
+
+```java
+@TestPropertySource(properties = "spring.ai.openai.api-key=test-key")
+```
+
+### Setting Up the Integration Test
+
 Create `CustomerControllerTest.java` in the corresponding test folder.
 
 ```java
@@ -399,6 +448,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 public class CustomerControllerTest {
 
   @Autowired
@@ -411,7 +461,10 @@ public class CustomerControllerTest {
 
 - `@SpringBootTest` — loads the full Spring application context
 - `@AutoConfigureMockMvc` — auto-wires the `MockMvc` bean
+- `@Transactional` — each test runs inside a transaction that is **rolled back** after the test completes, keeping the database clean between tests
 - `ObjectMapper` — used to convert Java objects to JSON (provided by Jackson)
+
+> **Instructor note — why `@Transactional` matters:** Without it, every test that writes data to the database leaves that data behind. Tests start polluting each other — a record created in test 1 affects the count in test 2, or an ID auto-incremented in test 1 causes test 3 to fail because it expected a different ID. This is one of the most common causes of "tests pass individually but fail when run together." `@Transactional` on the test class rolls back every write after each test, giving each test a clean slate.
 
 ### Test Get Customer
 
@@ -454,9 +507,11 @@ public void getAllCustomersTest() throws Exception {
 }
 ```
 
+> **Instructor note — fragile assertions:** Hardcoding `4` here is a common source of brittle tests in real projects. If someone adds a customer to the DataLoader, this test breaks with no obvious reason why. A more resilient alternative is `jsonPath("$.size()").value(org.hamcrest.Matchers.greaterThan(0))` — asserting that results exist without depending on an exact count. Use this as a discussion point about test design trade-offs.
+
 ### Test Valid Customer Creation
 
-> ⚠️ Note: This test asserts the new customer gets `id` of `5`, assuming the DataLoader preloads 4 customers and IDs are auto-incremented. If the DataLoader changes, update this value.
+> ⚠️ Note: With `@Transactional` added to the test class, each test rolls back after completion, so auto-incremented IDs will not accumulate across tests. However, the starting ID still depends on what the DataLoader seeded. If your DataLoader seeds 4 customers, the first new customer will get `id` 5. Update this value if your DataLoader changes.
 
 ```java
 @Test
@@ -480,11 +535,13 @@ public void validCustomerCreationTest() throws Exception {
   mockMvc.perform(request)
       .andExpect(status().isCreated())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.id").value(5))
+      .andExpect(jsonPath("$.id").exists())           // resilient: just verify an id was assigned
       .andExpect(jsonPath("$.firstName").value("Clint"))
       .andExpect(jsonPath("$.lastName").value("Barton"));
 }
 ```
+
+> **Instructor note:** We changed `.andExpect(jsonPath("$.id").value(5))` to `.andExpect(jsonPath("$.id").exists())`. Asserting the exact ID value is a brittle pattern — it breaks the moment the DataLoader or test execution order changes. In production test suites, assert that the field *exists* and has a valid value, not that it equals a specific number.
 
 ### Test Invalid Customer Creation
 
