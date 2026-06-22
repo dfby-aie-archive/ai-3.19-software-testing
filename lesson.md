@@ -123,7 +123,7 @@ public class CustomerServiceImpl implements CustomerService {
 }
 ```
 
-> **Instructor note:** Constructor injection (instead of `@Autowired` on a field) is the current industry standard. It makes dependencies explicit, enables immutability with `final`, and — critically — makes unit testing straightforward because you can construct the class directly without a Spring context.
+> 📖 **Self Reading — Constructor Injection:** Constructor injection (instead of `@Autowired` on a field) is the current industry standard. It makes dependencies explicit, enables immutability with `final`, and makes unit testing straightforward because you can construct the class directly without a Spring context.
 
 Using TDD can result in better code quality and fewer bugs because issues are caught earlier. It also increases confidence when refactoring because tests catch any regressions. However, it may not be suitable for all projects due to upfront time investment, learning curve, and maintenance cost of keeping tests up to date. Some teams adopt a hybrid approach — TDD for critical business logic and post-implementation tests for less critical features.
 
@@ -152,7 +152,7 @@ Both are included in the `spring-boot-starter-test` dependency that Spring Boot 
 
 Let's see a simple example using our `simple-crm` codebase.
 
-Create a `DemoService.java`:
+Create a `DemoService.java` in `src/main/java/com/ntu/sg/simple_crm/` and a corresponding `DemoServiceTest.java` in `src/test/java/com/ntu/sg/simple_crm/`. These files are for demonstration only and can be deleted after this exercise.
 
 ```java
 public class DemoService {
@@ -167,31 +167,35 @@ public class DemoService {
 }
 ```
 
-Create a corresponding `DemoServiceTest.java` in `src/test/java`. There are 3 steps in writing a unit test — this is known as the **Arrange-Act-Assert** pattern (also called Given-When-Then):
+There are 3 steps in writing a unit test — this is known as the **Arrange-Act-Assert** pattern (also called Given-When-Then):
+
+- **Arrange** — set up everything you need: create objects, define inputs
+- **Act** — call the single method you are testing
+- **Assert** — verify the result is what you expected
 
 ```java
 public class DemoServiceTest {
 
   @Test
   public void testAdd() {
-    // 1. SETUP
+    // 1. ARRANGE - set up inputs and expected values
     DemoService demoService = new DemoService();
     int expectedResult = 8;
 
-    // 2. EXECUTE
+    // 2. ACT - call the method being tested
     int actualResult = demoService.add(3, 5);
 
-    // 3. ASSERT
+    // 3. ASSERT - verify the result
     assertEquals(expectedResult, actualResult, "3 + 5 should be 8");
   }
 
   @Test
   public void testSubtract() {
-    // 1. SETUP
+    // 1. ARRANGE
     DemoService demoService = new DemoService();
     int expectedResult = 2;
 
-    // 2. EXECUTE
+    // 2. ACT
     int actualResult = demoService.subtract(5, 3);
 
     // 3. ASSERT
@@ -200,7 +204,11 @@ public class DemoServiceTest {
 }
 ```
 
-Run the test by clicking the green arrow next to the test method, or run `mvn test` in the terminal.
+Run the test by clicking the green arrow next to the test method. A passing test shows a green tick with no console output — **silence means success**. Output only appears when a test fails, showing what was expected versus what was actually returned.
+
+Notice we are not using dependency injection here — we are instantiating the class directly with `new`. This is intentional: unit tests do not start the Spring context, so there are no beans available. This is what makes them milliseconds fast.
+
+> 📖 **Self Reading — Why `new` instead of DI:** The fact that you *can* test a class with just `new` means it is well-designed — no hidden Spring magic required. In production, if a class is so tightly coupled to Spring that you cannot test it without the container, that is a design smell.
 
 Now try introducing a bug:
 
@@ -210,19 +218,7 @@ public int add(int a, int b) {
 }
 ```
 
-Run the test again — it should fail, demonstrating that the test caught the regression.
-
-Once you are comfortable, tests can be written more concisely:
-
-```java
-@Test
-public void testAdd() {
-  DemoService demoService = new DemoService();
-  assertEquals(8, demoService.add(3, 5), "3 + 5 should be 8");
-}
-```
-
-Notice we are not using dependency injection here. We are testing without spinning up the Spring context, which means no beans are available — but this also means tests run much faster.
+Run the test again — it should fail, demonstrating that the test caught the regression. Fix it before moving on.
 
 ### Test Naming Conventions
 
@@ -232,15 +228,13 @@ Consistent test naming helps teams understand what failed and why without readin
 methodName_scenario_expectedBehaviour
 ```
 
-For example:
-
 | Style | Example |
 |---|---|
 | Simple (common in tutorials) | `testCreateCustomer` |
 | Descriptive (production standard) | `createCustomer_validInput_returnsCreatedCustomer` |
 | BDD style | `givenValidCustomer_whenCreateCustomer_thenReturnSavedCustomer` |
 
-You will see both styles in practice. The descriptive style is preferred on team projects because the test name itself acts as documentation.
+> 📖 **Self Reading — BDD:** BDD stands for Behaviour Driven Development — an extension of TDD where tests are written in plain English-like language so that non-technical stakeholders (product owners, QA, business analysts) can read and understand what the system is supposed to do. The `given/when/then` naming style comes from BDD.
 
 ### Assertions
 
@@ -284,7 +278,9 @@ public class DemoServiceTest {
 
 ### Generating HTML Report
 
-Run `mvn surefire-report:report` and a HTML report will be generated at `target/site/surefire-report.html`.
+Run `mvn surefire-report:report` and a HTML report will be generated at `target/site/surefire-report.html`. Open it in a browser to see which tests passed, which failed, how long each took, and failure details.
+
+> 📖 **Self Reading — Why this matters in production:** In real projects, tests run automatically in a CI/CD pipeline (GitHub Actions, Jenkins, etc.) on every push. The pipeline publishes this report on the build dashboard so the whole team can see test results without running the project locally.
 
 ### 👨‍💻 Activity **(10 minutes)**
 
@@ -310,25 +306,35 @@ public boolean isEven(int a) {
 
 Recall that the service layer contains our business logic and depends on the repository layer. When unit testing the service layer, we do not want to interact with the real database — we only want to test the logic itself. We achieve this by **mocking** the repository.
 
+**Mockito** creates a fake version of the repository. When the service calls a repository method, Mockito intercepts it — the real repository is never invoked and no database is touched. Mockito simply returns the fake result you configured. Each layer is tested in isolation and owns its own tests.
+
 ### Prepare the Customer Class
 
 Before writing service tests, add the following Lombok annotations to the `Customer` class if not already present:
 
 ```java
-@Builder          // enables the builder pattern for creating Customer objects in tests
+@Builder           // enables the builder pattern for creating Customer objects in tests
 @EqualsAndHashCode // required for assertEquals() to compare Customer objects by value
+@NoArgsConstructor // required by JPA
+@AllArgsConstructor // required by @Builder when other constructors exist
 public class Customer {
   // ...
 }
 ```
 
+> 📖 **Self Reading — Why these annotations:**
+> - `@Builder` generates a fluent builder pattern so you can create objects cleanly in tests: `Customer.builder().firstName("Clint").build()`
+> - `@EqualsAndHashCode` generates `equals()` and `hashCode()` based on field values. Without it, Java compares object references (memory addresses), not field values — two separate `Customer` objects with identical data would fail `assertEquals()` even though they look the same.
+> - `@AllArgsConstructor` is required alongside `@Builder` when the class already has a custom constructor — without it, Lombok cannot generate the builder correctly.
+
 ### Mocking with Mockito
 
-Create `CustomerServiceImplTest.java` in the corresponding test folder.
+Create `CustomerServiceImplTest.java` in the corresponding test folder. Test files must mirror the source folder structure:
 
-Convention: test files mirror the source folder structure.
-- Source: `src/main/java/sg/edu/ntu/simplecrm/service/CustomerServiceImpl.java`
-- Test: `src/test/java/sg/edu/ntu/simplecrm/service/CustomerServiceImplTest.java`
+- Source: `src/main/java/com/ntu/sg/simple_crm/service/CustomerServiceImpl.java`
+- Test: `src/test/java/com/ntu/sg/simple_crm/service/CustomerServiceImplTest.java`
+
+All test methods in this section go **inside** the `CustomerServiceImplTest` class body.
 
 ```java
 @ExtendWith(MockitoExtension.class)
@@ -339,6 +345,7 @@ public class CustomerServiceImplTest {
 
   @InjectMocks
   private CustomerServiceImpl customerService;
+
 }
 ```
 
@@ -346,26 +353,28 @@ public class CustomerServiceImplTest {
 - `@Mock` — tells Mockito to create a mock `CustomerRepository`
 - `@InjectMocks` — tells Mockito to inject the mock into `CustomerServiceImpl`
 
-> **Instructor note — common mistake:** `@InjectMocks` must target the **concrete class** (`CustomerServiceImpl`), not the interface (`CustomerService`). Mockito creates an instance of the concrete class and injects the mocks — it cannot instantiate an interface. Students often write `CustomerService customerService` here and get a confusing error.
-
-This means we can test the service layer without spinning up the Spring context or touching the database.
+> **Common mistake:** `@InjectMocks` must target the **concrete class** (`CustomerServiceImpl`), not the interface (`CustomerService`). Mockito creates an instance of the concrete class and injects the mocks — it cannot instantiate an interface.
 
 ### Test Create Customer
+
+This test verifies that when `createCustomer()` is called with a valid `Customer` object, the service correctly calls `save()` on the repository and returns the saved customer.
 
 ```java
 @Test
 public void testCreateCustomer() {
 
-  // 1. SETUP
+  // 1. ARRANGE
   Customer customer = Customer.builder()
       .firstName("Clint").lastName("Barton")
       .email("clint@avengers.com").contactNo("12345678")
       .jobTitle("Special Agent").yearOfBirth(1975)
       .build();
 
+  // Tell Mockito: when save() is called with this customer, return this customer
+  // The real repository is never called — no database is touched
   when(customerRepository.save(customer)).thenReturn(customer);
 
-  // 2. EXECUTE
+  // 2. ACT
   Customer savedCustomer = customerService.createCustomer(customer);
 
   // 3. ASSERT
@@ -374,15 +383,17 @@ public void testCreateCustomer() {
 }
 ```
 
-- `when(...).thenReturn(...)` — tells Mockito what to return when a specific method is called
-- `verify(...)` — confirms the mocked method was called the expected number of times
+- `when(...).thenReturn(...)` — programs the mock: "when this method is called, return this value." This is setup, not an assertion.
+- `verify(...)` — confirms the mocked method was actually called the expected number of times. Catches bugs where your service never called the repository at all.
 
 ### Test Get Customer
+
+This test verifies that when `getCustomer()` is called with a valid ID, the service correctly retrieves and returns the customer.
 
 ```java
 @Test
 public void testGetCustomer() {
-  // 1. SETUP
+  // 1. ARRANGE
   Customer customer = Customer.builder()
       .firstName("Clint").lastName("Barton")
       .email("clint@avengers.com").contactNo("12345678")
@@ -390,9 +401,12 @@ public void testGetCustomer() {
       .build();
 
   Long customerId = 1L;
+
+  // Optional.of(customer) wraps the customer in an Optional — 
+  // this is how the repository signals "I found a record"
   when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
 
-  // 2. EXECUTE
+  // 2. ACT
   Customer retrievedCustomer = customerService.getCustomer(customerId);
 
   // 3. ASSERT
@@ -400,17 +414,28 @@ public void testGetCustomer() {
 }
 ```
 
+> 📖 **Self Reading — Why `Optional`:** Spring Data JPA's `findById()` returns `Optional<Customer>` instead of `Customer` directly. An `Optional` is a container that either holds a value (`Optional.of(customer)`) or is empty (`Optional.empty()`). This forces the developer to explicitly handle the "not found" case, preventing `NullPointerException`.
+
 ### Test Get Customer Not Found
+
+This test verifies that when `getCustomer()` is called with an ID that does not exist, the service throws a `CustomerNotFoundException`.
 
 ```java
 @Test
 public void testGetCustomerNotFound() {
   Long customerId = 1L;
+
+  // Optional.empty() simulates no record found in the database
   when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
+  // assertThrows verifies that the lambda throws the expected exception
+  // If the exception is NOT thrown, the test fails
   assertThrows(CustomerNotFoundException.class, () -> customerService.getCustomer(customerId));
 }
 ```
+
+- `Optional.empty()` — simulates a record not found in the database
+- `assertThrows(ExceptionClass, lambda)` — passes the expected exception class and the code that should trigger it. If the exception is not thrown, the test fails.
 
 ---
 
@@ -418,34 +443,43 @@ public void testGetCustomerNotFound() {
 
 Unit tests validate individual components in isolation. Integration tests validate how components work together — the full request/response cycle from controller through service to repository.
 
-Spring provides `MockMvc` to simulate HTTP requests without starting a real server.
+### Mockito vs MockMvc — Which Tool for Which Layer?
+
+| Tool | Tests | Mocks | Database |
+|---|---|---|---|
+| **Mockito** | Service layer | Repository (fake) | Not touched |
+| **MockMvc** | Controller layer (full stack) | HTTP server only | Real |
+
+**Mockito** mocks the repository so you can test service logic in isolation. **MockMvc** simulates the HTTP transport layer — it pretends to be a browser sending requests to your API and checks the response — but everything behind the controller (service, repository, database) is **real**.
+
+> 📖 **Self Reading — Common misconception:** The "Mock" in MockMvc refers only to the fake HTTP server — no real server starts and no HTTP port is opened. It does not mock the application layers. `@SpringBootTest` wires up the full application context, so integration tests do real database work. This is why integration tests are slower than unit tests.
 
 ### `@SpringBootTest` vs `@WebMvcTest`
 
-Before writing integration tests, it's worth understanding the two main annotations:
-
 | Annotation | What it loads | Speed | Use when |
 |---|---|---|---|
-| `@SpringBootTest` | Full application context — all beans, datasource, security, AI config, etc. | Slower | Testing the full stack end-to-end |
+| `@SpringBootTest` | Full application context — all beans, datasource, security, etc. | Slower | Testing the full stack end-to-end |
 | `@WebMvcTest` | Web layer only — controllers, filters, `@ControllerAdvice`. No service/repo beans. | Faster | Testing controller logic in isolation with mocked services |
 
-In production teams, `@WebMvcTest` is preferred for controller-layer tests because it is faster and more focused. `@SpringBootTest` is used for true end-to-end or database integration tests.
-
-> **Instructor note:** A common production gotcha — `@SpringBootTest` loads **everything**, including Spring AI and OpenAI configuration. If your test environment (e.g. CI/CD pipeline) does not have the `OPENAI_API_KEY` set, the context will fail to load and **all integration tests will fail before a single test even runs**. The error looks like a configuration failure, not a test failure — which confuses developers. The fix is either to provide a dummy key via `@TestPropertySource` or to use `@WebMvcTest` which skips the AI beans entirely.
-
-For this lesson we use `@SpringBootTest` to test the full stack. Make sure your `OPENAI_API_KEY` environment variable is set, or add this to your test class:
-
-```java
-@TestPropertySource(properties = "spring.ai.openai.api-key=test-key")
-```
+In production teams, `@WebMvcTest` is preferred for controller-layer tests because it is faster and more focused. `@SpringBootTest` is used for true end-to-end or database integration tests. In this lesson we use `@SpringBootTest` to test the full stack.
 
 ### Setting Up the Integration Test
 
-Create `CustomerControllerTest.java` in the corresponding test folder.
+Create `CustomerControllerTest.java` in the corresponding test folder:
+
+- Source: `src/main/java/com/ntu/sg/simple_crm/controller/CustomerController.java`
+- Test: `src/test/java/com/ntu/sg/simple_crm/controller/CustomerControllerTest.java`
+
+Add the following static imports at the top of the file — without these, `status()`, `content()`, and `jsonPath()` will not be recognised:
 
 ```java
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+```
 
+All test methods in this section go **inside** the `CustomerControllerTest` class body.
+
+```java
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -461,12 +495,39 @@ public class CustomerControllerTest {
 
 - `@SpringBootTest` — loads the full Spring application context
 - `@AutoConfigureMockMvc` — auto-wires the `MockMvc` bean
-- `@Transactional` — each test runs inside a transaction that is **rolled back** after the test completes, keeping the database clean between tests
-- `ObjectMapper` — used to convert Java objects to JSON (provided by Jackson)
+- `@Transactional` — each test runs inside a transaction that is automatically **rolled back** after the test completes, keeping the database clean between tests
+- `ObjectMapper` — converts Java objects to JSON strings (provided by Jackson)
 
-> **Instructor note — why `@Transactional` matters:** Without it, every test that writes data to the database leaves that data behind. Tests start polluting each other — a record created in test 1 affects the count in test 2, or an ID auto-incremented in test 1 causes test 3 to fail because it expected a different ID. This is one of the most common causes of "tests pass individually but fail when run together." `@Transactional` on the test class rolls back every write after each test, giving each test a clean slate.
+> 📖 **Self Reading — Why `@Transactional` matters:** Without it, every test that writes data to the database leaves that data behind. Tests start polluting each other — a record created in test 1 affects the count in test 2. `@Transactional` on the test class rolls back every write after each test, giving each test a clean slate without any manual cleanup or reset scripts.
 
-### Test Get Customer
+### Understanding the Test Structure
+
+Every MockMvc test follows the same pattern:
+
+**`RequestBuilder`** — an object that represents the HTTP request you want to send, built using `MockMvcRequestBuilders`:
+
+```java
+MockMvcRequestBuilders.get("/customers")     // GET request
+MockMvcRequestBuilders.post("/customers")    // POST request
+MockMvcRequestBuilders.put("/customers/1")   // PUT request
+MockMvcRequestBuilders.delete("/customers/1") // DELETE request
+```
+
+**`mockMvc.perform(request)`** — sends the request. Like hitting Send in Postman.
+
+**`.andExpect()`** — each call is one assertion, chained together:
+
+```java
+.andExpect(status().isOk())                                    // HTTP 200
+.andExpect(content().contentType(MediaType.APPLICATION_JSON))  // response is JSON
+.andExpect(jsonPath("$.id").value(1))                          // id field equals 1
+```
+
+> 📖 **Self Reading — JsonPath:** JsonPath is a query language for JSON. The `$` represents the root of the JSON response. So `$.id` means "get the `id` field from the root of the JSON object" and `$.size()` means "get the size of the JSON array." For example, if the API returns `{"id": 1, "firstName": "John"}`, then `jsonPath("$.firstName").value("John")` asserts that the `firstName` field equals `"John"`.
+
+### Test Get Customer by ID
+
+This test verifies that sending a GET request to `/customers/1` returns a `200 OK` response with the correct customer data.
 
 ```java
 @Test
@@ -483,15 +544,9 @@ public void getCustomerByIdTest() throws Exception {
 }
 ```
 
-**JsonPath** allows us to query the JSON response:
-
-```java
-jsonPath("$.id")        // returns the id field
-jsonPath("$.firstName") // returns the firstName field
-jsonPath("$.lastName")  // returns the lastName field
-```
-
 ### Test Get All Customers
+
+This test verifies that sending a GET request to `/customers` returns a `200 OK` response with a JSON array of all customers.
 
 > ⚠️ Note: This test asserts that 4 customers are returned. This depends on the `DataLoader` preloading exactly 4 customers. If you change the DataLoader, update this value accordingly.
 
@@ -507,11 +562,11 @@ public void getAllCustomersTest() throws Exception {
 }
 ```
 
-> **Instructor note — fragile assertions:** Hardcoding `4` here is a common source of brittle tests in real projects. If someone adds a customer to the DataLoader, this test breaks with no obvious reason why. A more resilient alternative is `jsonPath("$.size()").value(org.hamcrest.Matchers.greaterThan(0))` — asserting that results exist without depending on an exact count. Use this as a discussion point about test design trade-offs.
+> 📖 **Self Reading — Fragile assertions:** Hardcoding `4` here is a common source of brittle tests in real projects. If someone adds a customer to the DataLoader, this test breaks with no obvious reason. A more resilient alternative is `jsonPath("$.size()").value(org.hamcrest.Matchers.greaterThan(0))` — asserting that results exist without depending on an exact count.
 
 ### Test Valid Customer Creation
 
-> ⚠️ Note: With `@Transactional` added to the test class, each test rolls back after completion, so auto-incremented IDs will not accumulate across tests. However, the starting ID still depends on what the DataLoader seeded. If your DataLoader seeds 4 customers, the first new customer will get `id` 5. Update this value if your DataLoader changes.
+This test verifies that sending a valid POST request to `/customers` creates a real customer record in the database and returns `201 Created` with the saved customer data. Because `@Transactional` is on the test class, the record is automatically rolled back after the test — the database is left clean.
 
 ```java
 @Test
@@ -523,10 +578,14 @@ public void validCustomerCreationTest() throws Exception {
       .jobTitle("Special Agent").yearOfBirth(1975)
       .build();
 
-  // Step 2: Convert to JSON
+  // Step 2: Convert the Java object to a JSON-formatted String
+  // objectMapper.writeValueAsString() produces: {"firstName":"Clint","lastName":"Barton",...}
+  // It is a String in Java, but formatted as JSON text
   String newCustomerAsJSON = objectMapper.writeValueAsString(newCustomer);
 
-  // Step 3: Build the request
+  // Step 3: Build the POST request
+  // .contentType(MediaType.APPLICATION_JSON) tells Spring to treat the string as JSON
+  // and deserialize it back into a Customer object on the controller side
   RequestBuilder request = MockMvcRequestBuilders.post("/customers")
       .contentType(MediaType.APPLICATION_JSON)
       .content(newCustomerAsJSON);
@@ -535,20 +594,26 @@ public void validCustomerCreationTest() throws Exception {
   mockMvc.perform(request)
       .andExpect(status().isCreated())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.id").exists())           // resilient: just verify an id was assigned
+      .andExpect(jsonPath("$.id").exists())           // verify an id was assigned
       .andExpect(jsonPath("$.firstName").value("Clint"))
       .andExpect(jsonPath("$.lastName").value("Barton"));
 }
 ```
 
-> **Instructor note:** We changed `.andExpect(jsonPath("$.id").value(5))` to `.andExpect(jsonPath("$.id").exists())`. Asserting the exact ID value is a brittle pattern — it breaks the moment the DataLoader or test execution order changes. In production test suites, assert that the field *exists* and has a valid value, not that it equals a specific number.
+> 📖 **Self Reading — Why `$.id` exists() instead of a specific value:** Asserting an exact ID value (e.g. `.value(5)`) is a brittle pattern — it breaks the moment the DataLoader or test execution order changes. In production test suites, assert that the field *exists* and has a valid value, not that it equals a specific number.
+
+> 📖 **Self Reading — JSON is always text on the wire:** This is exactly what happens in real HTTP communication. Postman does the same thing — it serializes your JSON body to a string, sets the Content-Type header, and sends it. `ObjectMapper` is doing programmatically what Postman does for you visually.
 
 ### Test Invalid Customer Creation
+
+This test verifies that sending a POST request with invalid data returns `400 Bad Request`. The validation annotations from Lesson 3.17 (`@NotBlank`, `@Email`) reject the request before it even reaches the service layer.
 
 ```java
 @Test
 public void invalidCustomerCreationTest() throws Exception {
   // Step 1: Create a Customer object with invalid fields
+  // firstName and lastName are blank — violates @NotBlank
+  // email is not a valid email format — violates @Email
   Customer invalidCustomer = Customer.builder()
       .firstName("  ")
       .lastName("  ")
@@ -572,6 +637,8 @@ public void invalidCustomerCreationTest() throws Exception {
       .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 }
 ```
+
+This test is important because it confirms your validation layer is working correctly end-to-end. Unit tests cannot catch this — only an integration test that sends a real HTTP request through the full stack can confirm that `@NotBlank` and `@Email` are correctly wired and rejecting bad input at the controller level.
 
 ---
 
